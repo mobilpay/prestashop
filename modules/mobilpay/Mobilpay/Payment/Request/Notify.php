@@ -2,7 +2,7 @@
 /**
  * Class Mobilpay_Payment_Request_Notify
  * This class can be used for accessing payment info sent by mobilpay.ro in confirmation process
- * @copyright NETOPIA System
+ * @copyright NETOPIA
  * @author Claudiu Tudose
  * @version 1.0
  * 
