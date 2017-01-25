@@ -33,33 +33,27 @@ if (strcasecmp($_SERVER['REQUEST_METHOD'], 'post') == 0)
         #pentru a identifica ID-ul comenzii pentru care primim rezultatul platii folosim $id_comanda = $objPmReq->orderId;
         case 'confirmed':
           #cand action este confirmed avem certitudinea ca banii au plecat din contul posesorului de card si facem update al starii comenzii si livrarea produsului
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         case 'confirmed_pending':
           #cand action este confirmed_pending inseamna ca tranzactia este in curs de verificare antifrauda. Nu facem livrare/expediere. In urma trecerii de aceasta verificare se va primi o noua notificare pentru o actiune de confirmare sau anulare.
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         case 'paid_pending':
           #cand action este paid_pending inseamna ca tranzactia este in curs de verificare. Nu facem livrare/expediere. In urma trecerii de aceasta verificare se va primi o noua notificare pentru o actiune de confirmare sau anulare.
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         case 'paid':
           #cand action este paid inseamna ca tranzactia este in curs de procesare. Nu facem livrare/expediere. In urma trecerii de aceasta procesare se va primi o noua notificare pentru o actiune de confirmare sau anulare.
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         case 'canceled':
           #cand action este canceled inseamna ca tranzactia este anulata. Nu facem livrare/expediere.
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         case 'credit':
           #cand action este credit inseamna ca banii sunt returnati posesorului de card. Daca s-a facut deja livrare, aceasta trebuie oprita sau facut un reverse.
-		  $errorCode = $objPmReq->objPmNotify->errorCode;
-          $errorMessage = $objPmReq->objPmNotify->getCrc();
+	  $errorMessage = $objPmReq->objPmNotify->getCrc();
           break;
         default:
           $errorType		= Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_PERMANENT;
@@ -91,7 +85,7 @@ else
 
 $Mobilpay_cc = new Mobilpay_cc();
 
-if(!empty($objPmReq->orderId) && $errorCode==0) {
+if(!empty($objPmReq->orderId) && $objPmReq->objPmNotify->errorCode == 0) {
 	$orderIdParts = explode('#', $objPmReq->orderId);
 	$realOrderId = intval($orderIdParts[0]);
   	$cart = new Cart($realOrderId);
