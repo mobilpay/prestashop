@@ -1,9 +1,3 @@
-<div align="center">
-    <a href="https://netopia-payments.com/">
-        <img alt="NETOPIA Payments" src="https://suport.mobilpay.ro/np-logo-blue.svg" width="240" />
-    </a>
-</div>
-
 # NETOPIA Payments
 ## NETOPIA Payments module for Prestashop
 
