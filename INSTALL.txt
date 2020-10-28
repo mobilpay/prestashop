@@ -1,5 +1,0 @@
-1. upload the files from files folder 
-2. go to admin->payment section and press install for your desired mobilPay payment module
-3. make sure, that in the payment section from admin "Currencies restrictions" is set to RON for mobilPay CC
-4. upload the public and private certificates to 
-modules/mobilpay_cc/Mobilpay/certificates
