@@ -1,5 +1,5 @@
 # NETOPIA Payments
-## NETOPIA Payments module for Prestashop
+## NETOPIA Payments module for Prestashop V1.7.6.x
 
 
 ##### Note
