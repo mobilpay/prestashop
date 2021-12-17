@@ -436,9 +436,7 @@ class Mobilpay_cc extends PaymentModule
             /**
              * Confirm URL
              */
-             //$objPmReqCard->confirmUrl = $this->getPath() . 'validation.php?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_currency=' . intval($currency->id) . '&amp;id_module=' . intval($this->id);
-            $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ .'module/mobilpay_cc/betavalidation';
-            
+            $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ .'index.php?fc=module&amp;module=mobilpay_cc&amp;controller=betavalidation';
 
             $objPmReqCard->cancelUrl = 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php';
             $objPmReqCard->invoice = new Mobilpay_Payment_Invoice();
