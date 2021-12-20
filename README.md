@@ -1,6 +1,5 @@
 # NETOPIA Payments
 ## NETOPIA Payments module for Prestashop 1.7.X
-### compatible with php 8.0.0
 
 
 ##### Note
