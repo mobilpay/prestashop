@@ -1,4 +1,9 @@
 <?php
+/**
+ * betavalidation is relocated for validation on root
+ * And is the actuial IPN for mobilpay_cc
+ */
+ 
 require_once dirname(__FILE__).'/../../Mobilpay/Payment/Request/Abstract.php';
 require_once dirname(__FILE__).'/../../Mobilpay/Payment/Request/Card.php';
 require_once dirname(__FILE__).'/../../Mobilpay/Payment/Request/Notify.php';
@@ -15,12 +20,12 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 
 	public function initContent() {
 		parent::initContent();
-		$this->setTemplate('module:mobilpay_cc/views/templates/front/alfavalidation.tpl');
+		$this->setTemplate('module:mobilpay_cc/views/templates/front/betavalidation.tpl');
 	}
 
 	public function postProcess()
 	{
-		if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') == 0)
+	    if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') == 0)
 			{
 
 			if(isset($_POST['env_key']) && isset($_POST['data']))
@@ -89,12 +94,13 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 
 			$IpnOrderIdParts = explode('#', $objPmReq->orderId);
 			$realOrderId = intval($IpnOrderIdParts[0]);
+			$lockerId = intval($IpnOrderIdParts[1]);
 			$cart = new Cart($realOrderId);
 			$customer = new Customer((int)$cart->id_customer);
 
 			//real order id
 			$order_id = Order::getOrderByCartId($realOrderId);
-
+			
 
 			if(intval($order_id)>0) {
 				$order = new Order(intval($order_id));
@@ -111,20 +117,33 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 				/**
 				 * Add Order
 				 */	
-					$result = $this->module->validateOrder(
-						(int) $cart->id,
-						(int) Configuration::get('MPCC_OS_'.strtoupper($objPmReq->objPmNotify->action)),
-						// $total,
-						floatval($objPmReq->invoice->amount),
-						$this->module->displayName,
-						null,
-						// $mailVars,
-						array(),
-						// (int) $currency->id,
-						null,
-						false,
-						$customer->secure_key
-					);
+				 
+				$result = $this->module->validateOrder(
+					(int) $cart->id,
+					(int) Configuration::get('MPCC_OS_'.strtoupper($objPmReq->objPmNotify->action)),
+					// $total,
+					floatval($objPmReq->invoice->amount),
+					$this->module->displayName,
+					null,
+					// $mailVars,
+					array(),
+					// (int) $currency->id,
+					null,
+					false,
+					$customer->secure_key
+				);
+
+				//real order id
+				$order_id = Order::getOrderByCartId($realOrderId);
+				/**
+				 * Check if for sameday there is no record
+				 * So add new record for Sameday
+				 */
+			
+				if($order_id > 0) {
+					$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker ) values( '$order_id', '$lockerId' )";
+					Db::getInstance()->execute($sql);
+				}
 			}
 			  
 

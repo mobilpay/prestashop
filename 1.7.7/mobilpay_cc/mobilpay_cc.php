@@ -350,7 +350,6 @@ class Mobilpay_cc extends PaymentModule
 
     /**
      * Hook Payment Return 
-     * NEED TO CHECK , !!!!!
      */
     public function hookPaymentReturn($params)
     {        
@@ -360,32 +359,6 @@ class Mobilpay_cc extends PaymentModule
         return $this->display(__FILE__, 'confirmation.tpl');
     }
 
-    /**
-     * Validate ORDER and register the ORDER
-     * Base on CART Information
-     * Looks Not need to be rewrite !!!!
-     */
-    /*function validateOrder(
-        $id_cart,
-        $id_order_state,
-        $amount_paid,
-        $payment_method = 'Unknown',
-        $message = null,
-        $extra_vars = array(),
-        $currency_special = null,
-        $dont_touch_amount = false,
-        $secure_key = false,
-        Shop $shop = null
-    ) {
-        if (!$this->active) {
-            return;
-        }
-
-        
-        
-        parent::validateOrder($id_cart, $id_order_state, $amount_paid, $payment_method, $message, $extra_vars, $currency_special, true, $secure_key, $shop);
-        // Module::validateOrder($id_cart, $id_order_state, $amount_paid, $payment_method, $message, $extra_vars, $currency_special, true, $secure_key, $shop);
-    }*/
 
     
     /**
@@ -399,20 +372,19 @@ class Mobilpay_cc extends PaymentModule
             return;
         }
 
-        $this->setLogObj("Step #1 -> Mobilpay_CC -> hookPaymentOptions ");
-        //$this->setLogObj($params , " PARAMS ", true);
-        // Tools::dieObject($params);
+        // Step #1 -> Mobilpay_CC -> hookPaymentOptions
+        // PARAMS - hookPaymentOptions =>  true
         
-
-        $customer = new Customer(intval($params['cart']->id_customer));
+        $total = (float)$this->context->cart->getOrderTotal(true, Cart::BOTH);
+		$customer = new Customer((int)$this->context->cart->id_customer); 
         $currency = new Currency(intval($params['cart']->id_currency));
         $currency_module = $this->getCurrency();
         $currency_default = new Currency(intval(Configuration::get('PS_CURRENCY_DEFAULT')));
 
         $billing = new Address(intval($params['cart']->id_address_invoice));
         $delivery = new Address(intval($params['cart']->id_address_delivery));
+       
 
-        
 
         //include the main library
         require_once dirname(__FILE__) . '/Mobilpay/Payment/Request/Abstract.php';
@@ -425,13 +397,17 @@ class Mobilpay_cc extends PaymentModule
         $x509FilePath = dirname(__FILE__) . '/Mobilpay/certificates/public.cer';
 
         try {
+            /**
+             * Locker ID
+             */
+            $lockerId = (int)isset($_COOKIE['samedaycourier_locker_id']) ? $_COOKIE['samedaycourier_locker_id'] : 0;
+
             $objPmReqCard = new Mobilpay_Payment_Request_Card();
             $objPmReqCard->signature = Configuration::get('MPCC_SIGNATURE');
 
-            $objPmReqCard->orderId = intval($params['cart']->id) . '#' . time();
+            $objPmReqCard->orderId = intval($params['cart']->id) . '#' .$lockerId.'#'. time();
             $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
         
-    
             
             /**
              * Confirm URL
@@ -498,7 +474,6 @@ class Mobilpay_cc extends PaymentModule
             $this->smarty->assign(array('errors' => $errors));
             Tools::dieObject($e);
             return;
-            //return $this->display(__FILE__, 'validation.tpl');
         }
 
         /**
@@ -526,19 +501,17 @@ class Mobilpay_cc extends PaymentModule
     
 
     /**
-     * Set Log #1
+     * For debugging use one of the method to make log file
      */
     public function setLog($str)
         {
-            //
+            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($str, true)."\n" , FILE_APPEND | LOCK_EX);
         }
     
-    /**
-     * Set Log #2
-     */
     public function setLogObj($obj, $justName = null, $seperator = false)
         {
-            //
+            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', "----- ".print_r($justName, true)."----\n" , FILE_APPEND | LOCK_EX);
+            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($obj, true)."\n" , FILE_APPEND | LOCK_EX);
         }
     
 }
