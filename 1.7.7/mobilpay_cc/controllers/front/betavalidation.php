@@ -16,13 +16,21 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 	public $errorType		= Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_NONE;
 	public $errorMessage	= '';
 	public $beta = 0;
-	//public global $kernel;
+
+	/**
+	 * Default value for Samedays module
+	 * If exist the Samedays module 
+	 */
+	public $samedaysLockerId = 0;
+	public $samedaysLockerName = null;
+	public $samedaysLockerAddress = null;
 
 	public function initContent() {
 		parent::initContent();
 		$this->setTemplate('module:mobilpay_cc/views/templates/front/betavalidation.tpl');
 	}
 
+	
 	public function postProcess()
 	{
 	    if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') == 0)
@@ -90,13 +98,28 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 
 		
 		if(!empty($objPmReq->orderId) && $objPmReq->objPmNotify->errorCode == 0) {
+			/**
+			 * Check params 
+			 */
 
+			if(!empty($objPmReq->params)) {
+				foreach ($objPmReq->params as $pkey=>$pval) {
+					switch ($pkey) {
+						case "samedaysLockerId":
+							$this->samedaysLockerId = $pval;
+							break; 
+						case "samedaysLockerName":
+							$this->samedaysLockerName = $pval;
+							break; 
+						case "samedaysLockerAddress":
+							$this->samedaysLockerAddress = $pval;
+							break; 
+					}
+				}
+			}
 
 			$IpnOrderIdParts = explode('#', $objPmReq->orderId);
 			$realOrderId = intval($IpnOrderIdParts[0]);
-			$lockerId = intval($IpnOrderIdParts[1]);
-			$lockerName = strval($IpnOrderIdParts[2]);
-			$lockerAddress = strval($IpnOrderIdParts[3]);
 			$cart = new Cart($realOrderId);
 			$customer = new Customer((int)$cart->id_customer);
 
@@ -143,8 +166,10 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 				 */
 			
 				if($order_id > 0) {
-					$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker, 	address_locker, name_locker ) values( '$order_id', '$lockerId', '$lockerAddress', '$lockerName' )";
-					Db::getInstance()->execute($sql);
+					if(($this->samedaysLockerId > 0) && !is_null($this->samedaysLockerName) && !is_null($this->samedaysLockerAddress)) {
+						$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker, 	address_locker, name_locker ) values( '$order_id', '$this->samedaysLockerId', '$this->samedaysLockerAddress', '$this->samedaysLockerName' )";
+						Db::getInstance()->execute($sql);
+					}
 				}
 			}
 			  
