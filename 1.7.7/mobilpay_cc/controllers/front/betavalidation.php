@@ -95,6 +95,8 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 			$IpnOrderIdParts = explode('#', $objPmReq->orderId);
 			$realOrderId = intval($IpnOrderIdParts[0]);
 			$lockerId = intval($IpnOrderIdParts[1]);
+			$lockerName = strval($IpnOrderIdParts[2]);
+			$lockerAddress = strval($IpnOrderIdParts[3]);
 			$cart = new Cart($realOrderId);
 			$customer = new Customer((int)$cart->id_customer);
 
@@ -141,7 +143,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 				 */
 			
 				if($order_id > 0) {
-					$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker ) values( '$order_id', '$lockerId' )";
+					$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker, 	address_locker, name_locker ) values( '$order_id', '$lockerId', '$lockerAddress', '$lockerName' )";
 					Db::getInstance()->execute($sql);
 				}
 			}

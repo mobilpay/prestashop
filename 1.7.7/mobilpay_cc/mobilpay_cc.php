@@ -398,14 +398,16 @@ class Mobilpay_cc extends PaymentModule
 
         try {
             /**
-             * Locker ID
+             * Locker Info
              */
             $lockerId = (int)isset($_COOKIE['samedaycourier_locker_id']) ? $_COOKIE['samedaycourier_locker_id'] : 0;
+            $lockerName = (int)isset($_COOKIE['samedaycourier_locker_name']) ? $_COOKIE['samedaycourier_locker_name'] : null;
+            $lockerAddress = (int)isset($_COOKIE['samedaycourier_locker_address']) ? $_COOKIE['samedaycourier_locker_address'] : null;
 
             $objPmReqCard = new Mobilpay_Payment_Request_Card();
             $objPmReqCard->signature = Configuration::get('MPCC_SIGNATURE');
 
-            $objPmReqCard->orderId = intval($params['cart']->id) . '#' .$lockerId.'#'. time();
+            $objPmReqCard->orderId = intval($params['cart']->id) . '#' .$lockerId.'#'.$lockerName.'#' .$lockerAddress.'#'. time();
             $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
         
             
