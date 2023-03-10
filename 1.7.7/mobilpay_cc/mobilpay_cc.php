@@ -384,8 +384,23 @@ class Mobilpay_cc extends PaymentModule
         $billing = new Address(intval($params['cart']->id_address_invoice));
         $delivery = new Address(intval($params['cart']->id_address_delivery));
        
+        
+        /**
+         * Cart Summary
+         */
+        $cartSummaryArr = array();
+        $cartContents = $this->context->cart->getProducts(true);
+        
+        foreach($cartContents as $cartItem) {
+            $product['name'] = $cartItem['name'];
+            $product['price'] = number_format($cartItem['price_wt'], 2, '.', '');;
+            $product['quantity'] = $cartItem['quantity'];
+            $product['short_description'] = substr($cartItem['description_short'], 0, 100);
+            $cartSummaryArr[] = $product;
+        }
 
-
+        $cartSummaryJson = json_encode($cartSummaryArr);
+        
         //include the main library
         require_once dirname(__FILE__) . '/Mobilpay/Payment/Request/Abstract.php';
         require_once dirname(__FILE__) . '/Mobilpay/Payment/Request/Card.php';
@@ -407,13 +422,16 @@ class Mobilpay_cc extends PaymentModule
             $objPmReqCard = new Mobilpay_Payment_Request_Card();
             $objPmReqCard->signature = Configuration::get('MPCC_SIGNATURE');
 
+            // $objPmReqCard->orderId = intval($params['cart']->id) . '#' .$lockerId.'#'.$lockerName.'#' .$lockerAddress.'#'. time();
             $objPmReqCard->orderId = intval($params['cart']->id) . '#'. time();
             $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
         
             $objPmReqCard->params = array(
                 'samedaysLockerId' => $lockerId,
                 'samedaysLockerName' => $lockerName,
-                'samedaysLockerAddress' => $lockerAddress
+                'samedaysLockerAddress' => $lockerAddress,
+                'prestaShop'=> _PS_VERSION_,
+                'cartSummary'=> $cartSummaryJson
             );
             
             /**
