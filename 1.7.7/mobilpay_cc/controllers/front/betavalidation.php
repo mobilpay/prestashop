@@ -16,7 +16,16 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 	public $errorType		= Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_NONE;
 	public $errorMessage	= '';
 	public $beta = 0;
-
+	public $cipher     = 'rc4';
+	public $iv         = null;
+if(array_key_exists('cipher', $_POST))
+{
+    $cipher = $_POST['cipher'];
+    if(array_key_exists('iv', $_POST))
+    {
+        $iv = $_POST['iv'];
+    }
+}
 	/**
 	 * Default value for Samedays module
 	 * If exist the Samedays module 
@@ -43,7 +52,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 				#cheia privata este generata de mobilpay, accesibil in Admin -> Conturi de comerciant -> Detalii -> Setari securitate
 				$privateKeyFilePath = dirname(__FILE__).'/../../Mobilpay/certificates/private.key';
 				try{
-					$objPmReq = Mobilpay_Payment_Request_Abstract::factoryFromEncrypted($_POST['env_key'], $_POST['data'], $privateKeyFilePath);
+					$objPmReq = Mobilpay_Payment_Request_Abstract::factoryFromEncrypted($_POST['env_key'], $_POST['data'], $privateKeyFilePath, null, $cipher, $iv);
 
 					switch($objPmReq->objPmNotify->action)
 						{

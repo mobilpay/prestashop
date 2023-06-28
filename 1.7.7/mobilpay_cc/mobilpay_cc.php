@@ -493,6 +493,11 @@ class Mobilpay_cc extends PaymentModule
             $objPmReqCard->invoice->setShippingAddress($deliveryAddress);
 
             $objPmReqCard->encrypt($x509FilePath);
+            // echo'<pre/>';
+            //var_dump($objPmReqCard->getCipher());
+            //var_dump($objPmReqCard->getIv());
+            //var_dump($objPmReqCard);
+            
         } catch (Exception $e) {
             $error = $e->getMessage();
             $errors = explode("\n", $error);//just first line
@@ -508,6 +513,8 @@ class Mobilpay_cc extends PaymentModule
         $this->smarty->assign(array(
             'data' => $objPmReqCard->getEncData(),
             'env_key' => $objPmReqCard->getEnvKey(),
+            'cipher' => $objPmReqCard->getCipher(),
+            'iv' => $objPmReqCard->getIv(),
             'paymentUrl' => $paymentUrl,
             'testMode' => Configuration::get('MPCC_TESTMODE'),
         ));
