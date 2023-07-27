@@ -18,14 +18,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 	public $beta = 0;
 	public $cipher     = 'rc4';
 	public $iv         = null;
-if(array_key_exists('cipher', $_POST))
-{
-    $cipher = $_POST['cipher'];
-    if(array_key_exists('iv', $_POST))
-    {
-        $iv = $_POST['iv'];
-    }
-}
+
 	/**
 	 * Default value for Samedays module
 	 * If exist the Samedays module 
@@ -42,6 +35,14 @@ if(array_key_exists('cipher', $_POST))
 	
 	public function postProcess()
 	{
+		if(array_key_exists('cipher', $_POST))
+		{
+		    $cipher = $_POST['cipher'];
+		    if(array_key_exists('iv', $_POST))
+		    {
+			$iv = $_POST['iv'];
+		    }
+		}
 	    if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') == 0)
 			{
 
