@@ -159,9 +159,8 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 					// $total,
 					floatval($objPmReq->invoice->amount),
 					$this->module->displayName,
-					null,
-					// $mailVars,
-					array(),
+					null,  // Message , saved in ps_message TB
+					array('transaction_id'=> $objPmReq->orderId), // Extera Vars
 					// (int) $currency->id,
 					null,
 					false,
