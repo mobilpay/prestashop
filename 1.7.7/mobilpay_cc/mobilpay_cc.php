@@ -422,10 +422,16 @@ class Mobilpay_cc extends PaymentModule
             $objPmReqCard = new Mobilpay_Payment_Request_Card();
             $objPmReqCard->signature = Configuration::get('MPCC_SIGNATURE');
 
-            // $objPmReqCard->orderId = intval($params['cart']->id) . '#' .$lockerId.'#'.$lockerName.'#' .$lockerAddress.'#'. time();
+            /**
+             * Get default lang
+             */
+            $defaultLanguageId = Configuration::get('PS_LANG_DEFAULT');
+            $defaultLanguage = new Language($defaultLanguageId);
+
             $objPmReqCard->orderId = intval($params['cart']->id) . '#'. time();
-            $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
-        
+            // $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
+            $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . $defaultLanguage->iso_code . '/order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
+
             $objPmReqCard->params = array(
                 'samedaysLockerId' => $lockerId,
                 'samedaysLockerName' => $lockerName,
