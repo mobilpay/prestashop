@@ -27,9 +27,18 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 	public $samedaysLockerName = null;
 	public $samedaysLockerAddress = null;
 
+	public static function getOrderIdByCartId($id_cart)
+	{
+		$sql = 'SELECT `id_order`
+				FROM `' . _DB_PREFIX_ . 'orders`
+				WHERE `id_cart` = ' . (int)$id_cart;
+		$result = Db::getInstance()->getRow($sql);
+
+		return isset($result['id_order']) ? (int)$result['id_order'] : false;
+	}
+	
 	public function initContent() {
 		parent::initContent();
-		$this->setTemplate('module:mobilpay_cc/views/templates/front/betavalidation.tpl');
 	}
 
 	
@@ -134,7 +143,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 			$customer = new Customer((int)$cart->id_customer);
 
 			//real order id
-			$order_id = Order::getOrderByCartId($realOrderId);
+			$order_id = self::getOrderIdByCartId($realOrderId);
 			
 
 			if(intval($order_id)>0) {
@@ -168,7 +177,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 				);
 
 				//real order id
-				$order_id = Order::getOrderByCartId($realOrderId);
+				$order_id = self::getOrderIdByCartId($realOrderId);
 				/**
 				 * Check if for sameday there is no record
 				 * So add new record for Sameday
