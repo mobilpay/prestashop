@@ -36,7 +36,7 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 
 		return isset($result['id_order']) ? (int)$result['id_order'] : false;
 	}
-	
+
 	public function initContent() {
 		parent::initContent();
 	}
@@ -199,5 +199,11 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
             'errorCode' => $this->errorCode,
             'errorMessage' => $this->errorMessage
         ]);
+
+		header("Content-Type: application/xml; charset=utf-8");
+		$xml = '<?xml version="1.0" encoding="utf-8"?>';
+        $xml .= '<crc error_type="' . $this->errorType . '" error_code="' . $this->errorCode . '">' . $this->errorMessage . '</crc>';
+        echo $xml;
+        exit;
 	}
 }
