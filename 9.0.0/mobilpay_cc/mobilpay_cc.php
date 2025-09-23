@@ -534,7 +534,7 @@ class Mobilpay_cc extends PaymentModule
 
         $payment_options = new PaymentOption();
         $payment_options->setModuleName($this->name)
-            ->setCallToActionText($this->trans('Plata online cu card bancar', array(), 'Modules.Mobilpay_cc.Shop'))
+            ->setCallToActionText($this->l('Plata online cu card bancar'))
             ->setAction($paymentUrl)
             ->setAdditionalInformation($this->fetch('module:mobilpay_cc/views/templates/front/option.tpl'))
             ->setForm($this->fetch('module:mobilpay_cc/views/templates/front/form.tpl'));
