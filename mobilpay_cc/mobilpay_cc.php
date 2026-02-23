@@ -27,18 +27,19 @@ class Mobilpay_cc extends PaymentModule
 
     public function install()
     {
-        if (!parent::install()
-            OR !Configuration::updateValue('MPCC_SIGNATURE', '')
-            OR !Configuration::updateValue('MPCC_CART_DESCRIPTION', '')
-            OR !Configuration::updateValue('MPCC_OS_CONFIRMED_PENDING', '')
-            OR !Configuration::updateValue('MPCC_OS_CONFIRMED', '')
-            OR !Configuration::updateValue('MPCC_OS_PAID_PENDING', '')
-            OR !Configuration::updateValue('MPCC_OS_PAID', '')
-            OR !Configuration::updateValue('MPCC_OS_CANCELED', '')
-            OR !Configuration::updateValue('MPCC_OS_CREDIT', '')
-            OR !Configuration::updateValue('MPCC_TESTMODE', 1)
-            OR !$this->registerHook('paymentOptions')
-            OR !$this->registerHook('paymentReturn')
+        if (
+            !parent::install()
+            or !Configuration::updateValue('MPCC_SIGNATURE', '')
+            or !Configuration::updateValue('MPCC_CART_DESCRIPTION', '')
+            or !Configuration::updateValue('MPCC_OS_CONFIRMED_PENDING', '')
+            or !Configuration::updateValue('MPCC_OS_CONFIRMED', '')
+            or !Configuration::updateValue('MPCC_OS_PAID_PENDING', '')
+            or !Configuration::updateValue('MPCC_OS_PAID', '')
+            or !Configuration::updateValue('MPCC_OS_CANCELED', '')
+            or !Configuration::updateValue('MPCC_OS_CREDIT', '')
+            or !Configuration::updateValue('MPCC_TESTMODE', 1)
+            or !$this->registerHook('paymentOptions')
+            or !$this->registerHook('paymentReturn')
         ) {
             return false;
         }
@@ -47,16 +48,17 @@ class Mobilpay_cc extends PaymentModule
 
     public function uninstall()
     {
-        if (!Configuration::deleteByName('MPCC_SIGNATURE')
-            OR !Configuration::deleteByName('MPCC_CART_DESCRIPTION')
-            OR !Configuration::deleteByName('MPCC_OS_CONFIRMED_PENDING')
-            OR !Configuration::deleteByName('MPCC_OS_CONFIRMED')
-            OR !Configuration::deleteByName('MPCC_OS_PAID_PENDING')
-            OR !Configuration::deleteByName('MPCC_OS_PAID')
-            OR !Configuration::deleteByName('MPCC_OS_CANCELED')
-            OR !Configuration::deleteByName('MPCC_OS_CREDIT')
-            OR !Configuration::deleteByName('MPCC_TESTMODE')
-            OR !parent::uninstall()
+        if (
+            !Configuration::deleteByName('MPCC_SIGNATURE')
+            or !Configuration::deleteByName('MPCC_CART_DESCRIPTION')
+            or !Configuration::deleteByName('MPCC_OS_CONFIRMED_PENDING')
+            or !Configuration::deleteByName('MPCC_OS_CONFIRMED')
+            or !Configuration::deleteByName('MPCC_OS_PAID_PENDING')
+            or !Configuration::deleteByName('MPCC_OS_PAID')
+            or !Configuration::deleteByName('MPCC_OS_CANCELED')
+            or !Configuration::deleteByName('MPCC_OS_CREDIT')
+            or !Configuration::deleteByName('MPCC_TESTMODE')
+            or !parent::uninstall()
         ) {
             return false;
         }
@@ -73,9 +75,10 @@ class Mobilpay_cc extends PaymentModule
 
             if (!sizeof($this->_postErrors)) {
                 if (!empty($_FILES['MPCC_PRIVATE_KEY']['name']) && $_FILES['MPCC_PRIVATE_KEY']['error'] == 0) {
-                    if (!move_uploaded_file($_FILES['MPCC_PRIVATE_KEY']['tmp_name'],
-                        dirname(__FILE__) . '/Mobilpay/certificates/private.key')
-                    ) {
+                    if (!move_uploaded_file(
+                        $_FILES['MPCC_PRIVATE_KEY']['tmp_name'],
+                        dirname(__FILE__) . '/Mobilpay/certificates/private.key'
+                    )) {
                         $this->_postErrors[] = 'can not upload private key file please check permissions for ' . dirname(__FILE__) . '/Mobilpay/certificates/';
                         $this->displayErrors();
                         $this->displayPayex();
@@ -84,9 +87,10 @@ class Mobilpay_cc extends PaymentModule
                     }
                 }
                 if (!empty($_FILES['MPCC_PUBLIC_KEY']['name']) && $_FILES['MPCC_PUBLIC_KEY']['error'] == 0) {
-                    if (!move_uploaded_file($_FILES['MPCC_PUBLIC_KEY']['tmp_name'],
-                        dirname(__FILE__) . '/Mobilpay/certificates/public.cer')
-                    ) {
+                    if (!move_uploaded_file(
+                        $_FILES['MPCC_PUBLIC_KEY']['tmp_name'],
+                        dirname(__FILE__) . '/Mobilpay/certificates/public.cer'
+                    )) {
                         $this->_postErrors[] = 'can not upload public key file please check permissions for ' . dirname(__FILE__) . '/Mobilpay/certificates/';
                         $this->displayErrors();
                         $this->displayPayex();
@@ -130,7 +134,7 @@ class Mobilpay_cc extends PaymentModule
 		<div class="alert error">
 			<h3>' . ($nbErrors > 1 ? $this->l('There are') : $this->l('There is')) . ' ' . $nbErrors . ' ' . ($nbErrors > 1 ? $this->l('errors') : $this->l('error')) . '</h3>
 			<ol>';
-        foreach ($this->_postErrors AS $error) {
+        foreach ($this->_postErrors as $error) {
             $this->_html .= '<li>' . $error . '</li>';
         }
         $this->_html .= '
@@ -165,7 +169,7 @@ class Mobilpay_cc extends PaymentModule
             'MPCC_TESTMODE'
         ));
 
-        $MPCC_SIGNATURE             = array_key_exists('MPCC_SIGNATURE',$_POST) ? $_POST['MPCC_SIGNATURE'] : (array_key_exists('MPCC_SIGNATURE', $conf) ? $conf['MPCC_SIGNATURE'] : '');
+        $MPCC_SIGNATURE             = array_key_exists('MPCC_SIGNATURE', $_POST) ? $_POST['MPCC_SIGNATURE'] : (array_key_exists('MPCC_SIGNATURE', $conf) ? $conf['MPCC_SIGNATURE'] : '');
         $MPCC_CART_DESCRIPTION      = array_key_exists('MPCC_CART_DESCRIPTION', $_POST) ? $_POST['MPCC_CART_DESCRIPTION'] : (array_key_exists('MPCC_CART_DESCRIPTION', $conf) ? $conf['MPCC_CART_DESCRIPTION'] : '');
         $MPCC_OS_CONFIRMED_PENDING  = array_key_exists('MPCC_OS_CONFIRMED_PENDING', $_POST) ? $_POST['MPCC_OS_CONFIRMED_PENDING'] : (array_key_exists('MPCC_OS_CONFIRMED_PENDING', $conf) ? $conf['MPCC_OS_CONFIRMED_PENDING'] : '');
         $MPCC_OS_CONFIRMED          = array_key_exists('MPCC_OS_CONFIRMED', $_POST) ? $_POST['MPCC_OS_CONFIRMED'] : (array_key_exists('MPCC_OS_CONFIRMED', $conf) ? $conf['MPCC_OS_CONFIRMED'] : '');
@@ -181,7 +185,7 @@ class Mobilpay_cc extends PaymentModule
 			<legend><img src="../img/admin/contact.gif" />' . $this->l('Settings') . '</legend>
             <label>' . $this->l('Account Signature') . '</label>
             <div class="margin-form">
-                <input type="text" size="33" name="MPCC_SIGNATURE" value="' . htmlentities($MPCC_SIGNATURE, ENT_COMPAT,'UTF-8') . '" />
+                <input type="text" size="33" name="MPCC_SIGNATURE" value="' . htmlentities($MPCC_SIGNATURE, ENT_COMPAT, 'UTF-8') . '" />
                 <p class="hint clear" style="display: block; width: 501px;">' . $this->l('MobilPay Account Signature') . '</p>
             </div><div style="clear:both;">&nbsp;</div>
 
@@ -199,8 +203,11 @@ class Mobilpay_cc extends PaymentModule
 
             <label>' . $this->l('Shopping Cart Description') . '</label>
             <div class="margin-form">
-                <input type="text" size="33" name="MPCC_CART_DESCRIPTION" value="' . htmlentities($MPCC_CART_DESCRIPTION,
-                        ENT_COMPAT, 'UTF-8') . '" />
+                <input type="text" size="33" name="MPCC_CART_DESCRIPTION" value="' . htmlentities(
+            $MPCC_CART_DESCRIPTION,
+            ENT_COMPAT,
+            'UTF-8'
+        ) . '" />
                 <p class="hint clear" style="display: block; width: 501px;">' . $this->l('Description appears on mobilpay website') . '</p>
             </div><div style="clear:both;">&nbsp;</div>
 
@@ -216,33 +223,33 @@ class Mobilpay_cc extends PaymentModule
         $this->_html .= '
         <label>' . $this->l('Pending verification') . '</label>
         <div class="margin-form">';
-        
+
         $this->_html .= '
         <select name="MPCC_OS_CONFIRMED_PENDING">';
-        
+
         $currentStateTab = $MPCC_OS_CONFIRMED_PENDING;
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
 
         $this->_html .= '</select>';
 
         $this->_html .= '
-        <p class="hint clear" style="display: block; width: 501px;">' . 
+        <p class="hint clear" style="display: block; width: 501px;">' .
             $this->l('Transaction is pending verification regarding fraud risk. Money are already taken from the client\'s credit card') .
-        '</p>
+            '</p>
         </div><div style="clear:both;">&nbsp;</div>';
 
 
         $this->_html .= '
         <label>' . $this->l('Payed / Confirmed') . '</label>
         <div class="margin-form">';
-        
+
         $this->_html .= '
         <select name="MPCC_OS_CONFIRMED">';
         $currentStateTab = $MPCC_OS_CONFIRMED;
 
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
 
@@ -252,14 +259,14 @@ class Mobilpay_cc extends PaymentModule
 
         $this->_html .= '<label>' . $this->l('Pending') . '</label>
                         <div class="margin-form">';
-        
+
         $this->_html .= '<select name="MPCC_OS_PAID_PENDING">';
         $currentStateTab = $MPCC_OS_PAID_PENDING;
 
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
-        
+
         $this->_html .= '</select>';
         $this->_html .= '</div><div style="clear:both;">&nbsp;</div>';
 
@@ -270,10 +277,10 @@ class Mobilpay_cc extends PaymentModule
         $this->_html .= '<select name="MPCC_OS_PAID">';
         $currentStateTab = $MPCC_OS_PAID;
 
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
-        
+
         $this->_html .= '</select>';
         $this->_html .= '</div><div style="clear:both;">&nbsp;</div>';
 
@@ -284,7 +291,7 @@ class Mobilpay_cc extends PaymentModule
         $this->_html .= '<select name="MPCC_OS_CANCELED">';
         $currentStateTab = $MPCC_OS_CANCELED;
 
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
 
@@ -298,7 +305,7 @@ class Mobilpay_cc extends PaymentModule
         $this->_html .= '<select name="MPCC_OS_CREDIT">';
         $currentStateTab = $MPCC_OS_CREDIT;
 
-        foreach ($states AS $state) {
+        foreach ($states as $state) {
             $this->_html .= '<option value="' . $state['id_order_state'] . '"' . (($state['id_order_state'] == $currentStateTab) ? ' selected="selected"' : '') . '>' . stripslashes($state['name']) . '</option>';
         }
 
@@ -319,14 +326,12 @@ class Mobilpay_cc extends PaymentModule
      */
     public function getPath()
     {
-        if(isset($_SERVER['HTTPS'])){
+        if (isset($_SERVER['HTTPS'])) {
             $protocol = ($_SERVER['HTTPS'] && $_SERVER['HTTPS'] != "off") ? "https" : "http";
-        }
-        else{
+        } else {
             $protocol = 'http';
         }
-        return $protocol . "://" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
-   
+        return $protocol . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
     }
 
 
@@ -352,7 +357,7 @@ class Mobilpay_cc extends PaymentModule
      * Hook Payment Return 
      */
     public function hookPaymentReturn($params)
-    {        
+    {
         if (!$this->active) {
             return;
         }
@@ -360,7 +365,7 @@ class Mobilpay_cc extends PaymentModule
     }
 
 
-    
+
     /**
      * The Main Hook 
      * @param $params
@@ -374,24 +379,24 @@ class Mobilpay_cc extends PaymentModule
 
         // Step #1 -> Mobilpay_CC -> hookPaymentOptions
         // PARAMS - hookPaymentOptions =>  true
-        
+
         $total = (float)$this->context->cart->getOrderTotal(true, Cart::BOTH);
-		$customer = new Customer((int)$this->context->cart->id_customer); 
+        $customer = new Customer((int)$this->context->cart->id_customer);
         $currency = new Currency(intval($params['cart']->id_currency));
         $currency_module = $this->getCurrency();
         $currency_default = new Currency(intval(Configuration::get('PS_CURRENCY_DEFAULT')));
 
         $billing = new Address(intval($params['cart']->id_address_invoice));
         $delivery = new Address(intval($params['cart']->id_address_delivery));
-       
-        
+
+
         /**
          * Cart Summary
          */
         $cartSummaryArr = array();
         $cartContents = $this->context->cart->getProducts(true);
-        
-        foreach($cartContents as $cartItem) {
+
+        foreach ($cartContents as $cartItem) {
             $product['name'] = $cartItem['name'];
             $product['price'] = number_format($cartItem['price_wt'], 2, '.', '');;
             $product['quantity'] = $cartItem['quantity'];
@@ -400,7 +405,7 @@ class Mobilpay_cc extends PaymentModule
         }
 
         $cartSummaryJson = json_encode($cartSummaryArr);
-        
+
         //include the main library
         require_once dirname(__FILE__) . '/Mobilpay/Payment/Request/Abstract.php';
         require_once dirname(__FILE__) . '/Mobilpay/Payment/Request/Card.php';
@@ -428,13 +433,13 @@ class Mobilpay_cc extends PaymentModule
             $defaultLanguageId = Configuration::get('PS_LANG_DEFAULT');
             $defaultLanguage = new Language($defaultLanguageId);
 
-            $objPmReqCard->orderId = intval($params['cart']->id) . '#'. time();
+            $objPmReqCard->orderId = intval($params['cart']->id) . '#' . time();
             // $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
             // $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . $defaultLanguage->iso_code . '/order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
 
             $link = new Link();
             $orderConfirmationUrl = $link->getPageLink('order-confirmation', true, $this->context->language->id);
-            $objPmReqCard->returnUrl = $orderConfirmationUrl.'?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
+            $objPmReqCard->returnUrl = $orderConfirmationUrl . '?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
 
             $objPmReqCard->params = array(
                 'samedaysLockerId' => $lockerId,
@@ -442,23 +447,23 @@ class Mobilpay_cc extends PaymentModule
                 'samedaysLockerAddress' => $lockerAddress,
                 'version' => "1.0.1",
                 'api' => "1.0",
-                'platform'=> "prestaShop " . _PS_VERSION_,
-                'cartSummary'=> $cartSummaryJson
+                'platform' => "prestaShop " . _PS_VERSION_,
+                'cartSummary' => $cartSummaryJson
             );
-            
+
             /**
              * Confirm URL
              */
-            $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ .'index.php?fc=module&amp;module=mobilpay_cc&amp;controller=betavalidation';
+            $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'index.php?fc=module&amp;module=mobilpay_cc&amp;controller=betavalidation';
 
-            $objPmReqCard->cancelUrl = 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php';
+            $objPmReqCard->cancelUrl = 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'index.php';
             $objPmReqCard->invoice = new Mobilpay_Payment_Invoice();
 
             // $objPmReqCard->invoice->currency = 'RON'; /*$currency_module->iso_code;*/
-			$objPmReqCard->invoice->currency = $currency->iso_code;
+            $objPmReqCard->invoice->currency = $currency->iso_code;
 
-			$objPmReqCard->invoice->amount = $params['cart']->getOrderTotal(true, 3);
-			
+            $objPmReqCard->invoice->amount = $params['cart']->getOrderTotal(true, 3);
+
             if (Configuration::get('MPCC_CART_DESCRIPTION') != '') {
                 $objPmReqCard->invoice->details = Configuration::get('MPCC_CART_DESCRIPTION');
             }
@@ -482,9 +487,9 @@ class Mobilpay_cc extends PaymentModule
             $billingAddress->address = $billing->address1 . ' ' . $billing->address2;
             $billingAddress->email = $customer->email;
             // $billingAddress->mobilePhone = $billing->phone_mobile;
-            $billingAddress->mobilePhone		= ($billing->phone) ? $billing->phone : $billing->phone_mobile;
+            $billingAddress->mobilePhone        = ($billing->phone) ? $billing->phone : $billing->phone_mobile;
             $objPmReqCard->invoice->setBillingAddress($billingAddress);
-            
+
             /**
              * Delivery Address
              */
@@ -509,10 +514,10 @@ class Mobilpay_cc extends PaymentModule
             //var_dump($objPmReqCard->getCipher());
             //var_dump($objPmReqCard->getIv());
             //var_dump($objPmReqCard);
-            
+
         } catch (Exception $e) {
             $error = $e->getMessage();
-            $errors = explode("\n", $error);//just first line
+            $errors = explode("\n", $error); //just first line
             $this->smarty->assign(array('errors' => $errors));
             Tools::dieObject($e);
             return;
@@ -542,20 +547,19 @@ class Mobilpay_cc extends PaymentModule
         return [$payment_options];
     }
 
-    
+
 
     /**
      * For debugging use one of the method to make log file
      */
     public function setLog($str)
-        {
-            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($str, true)."\n" , FILE_APPEND | LOCK_EX);
-        }
-    
+    {
+        //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($str, true)."\n" , FILE_APPEND | LOCK_EX);
+    }
+
     public function setLogObj($obj, $justName = null, $seperator = false)
-        {
-            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', "----- ".print_r($justName, true)."----\n" , FILE_APPEND | LOCK_EX);
-            //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($obj, true)."\n" , FILE_APPEND | LOCK_EX);
-        }
-    
+    {
+        //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', "----- ".print_r($justName, true)."----\n" , FILE_APPEND | LOCK_EX);
+        //file_put_contents(dirname(__FILE__).'/log/netopiaLog.log', print_r($obj, true)."\n" , FILE_APPEND | LOCK_EX);
+    }
 }

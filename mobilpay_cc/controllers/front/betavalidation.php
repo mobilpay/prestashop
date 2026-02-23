@@ -94,6 +94,20 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 					$this->errorCode		= $e->getCode();
 					$this->errorMessage 	= $e->getMessage();
 				}
+
+				// When decrypt succeeded but payment failed (gateway sent errorCode), set IPN response error so gateway gets error_type=1 and proper error_code
+				if (isset($objPmReq)) {
+					$notifyErr = $objPmReq->objPmNotify->errorCode;
+					$isPaymentSuccess = ((string) $notifyErr === '0' || $notifyErr === null || $notifyErr === '');
+					if (!$isPaymentSuccess) {
+						$this->errorType    = Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_TEMPORARY; // 0x01 = 1
+						$this->errorCode    = (int) $notifyErr;
+						if ($this->errorCode === 0) {
+							$this->errorCode = Mobilpay_Payment_Request_Abstract::ERROR_CONFIRM_INVALID_ACTION;
+						}
+						$this->errorMessage = ''; // empty body in failed scenario
+					}
+				}
 		
 			}	else {
 				$this->errorType 		= Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_PERMANENT;
@@ -106,83 +120,114 @@ class Mobilpay_CcBetavalidationModuleFrontController extends ModuleFrontControll
 			$this->errorMessage 	= 'invalid request metod for payment confirmation';
 		}
 
-		
-		if(!empty($objPmReq->orderId) && $objPmReq->objPmNotify->errorCode == 0) {
-			/**
-			 * Check params 
-			 */
+		// Only process success path when we have a valid request and no payment error
+		// Payment platform sends errorCode as string "0" in XML, so we must accept that (not strict === 0)
+		$objPmReqSet = isset($objPmReq);
+		$notifyErrorCode = $objPmReqSet ? $objPmReq->objPmNotify->errorCode : null;
+		$isSuccess = $objPmReqSet && !empty($objPmReq->orderId) && ((string) $notifyErrorCode === '0' || $notifyErrorCode === null || $notifyErrorCode === '');
 
-			if(!empty($objPmReq->params)) {
-				foreach ($objPmReq->params as $pkey=>$pval) {
-					switch ($pkey) {
-						case "samedaysLockerId":
-							$this->samedaysLockerId = $pval;
-							break; 
-						case "samedaysLockerName":
-							$this->samedaysLockerName = $pval;
-							break; 
-						case "samedaysLockerAddress":
-							$this->samedaysLockerAddress = $pval;
-							break; 
-					}
-				}
-			}
-
-			$IpnOrderIdParts = explode('#', $objPmReq->orderId);
-			$realOrderId = intval($IpnOrderIdParts[0]);
-			$cart = new Cart($realOrderId);
-			$customer = new Customer((int)$cart->id_customer);
-
-			//real order id
-			$order_id = Order::getOrderByCartId($realOrderId);
-			
-
-			if(intval($order_id)>0) {
-				$order = new Order(intval($order_id));
-
-				$history = new OrderHistory();
-				$history->id_order = $order_id;
-
-				$history->id_employee = 1;
-				$carrier = new Carrier(intval($order->id_carrier), intval($order->id_lang));
-				$templateVars = array('{followup}' => ($history->id_order_state == _PS_OS_SHIPPING_ AND $order->shipping_number) ? str_replace('@', $order->shipping_number, $carrier->url) : '');
-				$history->addWithemail(true, $templateVars);
-
-			}else{
+		if ($isSuccess) {
+			try {
 				/**
-				 * Add Order
-				 */	
-				 
-				$result = $this->module->validateOrder(
-					(int) $cart->id,
-					(int) Configuration::get('MPCC_OS_'.strtoupper($objPmReq->objPmNotify->action)),
-					// $total,
-					floatval($objPmReq->invoice->amount),
-					$this->module->displayName,
-					null,  // Message , saved in ps_message TB
-					array('transaction_id'=> $objPmReq->orderId), // Extera Vars
-					// (int) $currency->id,
-					null,
-					false,
-					$customer->secure_key
-				);
-
-				//real order id
-				$order_id = Order::getOrderByCartId($realOrderId);
-				/**
-				 * Check if for sameday there is no record
-				 * So add new record for Sameday
+				 * Check params 
 				 */
-			
-				if($order_id > 0) {
-					if(($this->samedaysLockerId > 0) && !is_null($this->samedaysLockerName) && !is_null($this->samedaysLockerAddress)) {
-						$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker, 	address_locker, name_locker ) values( '$order_id', '$this->samedaysLockerId', '$this->samedaysLockerAddress', '$this->samedaysLockerName' )";
-						Db::getInstance()->execute($sql);
+
+				if(!empty($objPmReq->params)) {
+					foreach ($objPmReq->params as $pkey=>$pval) {
+						switch ($pkey) {
+							case "samedaysLockerId":
+								$this->samedaysLockerId = $pval;
+								break; 
+							case "samedaysLockerName":
+								$this->samedaysLockerName = $pval;
+								break; 
+							case "samedaysLockerAddress":
+								$this->samedaysLockerAddress = $pval;
+								break; 
+						}
 					}
 				}
-			}
-			  
 
+				// Resolve order state: module config or fallback to PS_OS_PAYMENT (avoids 500 when config empty)
+				$idOrderState = (int) Configuration::get('MPCC_OS_'.strtoupper($objPmReq->objPmNotify->action));
+				if ($idOrderState <= 0) {
+					$idOrderState = (int) Configuration::get('PS_OS_PAYMENT');
+				}
+
+				// orderId from MobilPay = "cart_id#timestamp" (see mobilpay_cc.php: orderId = cart->id . '#' . time())
+				$IpnOrderIdParts = explode('#', $objPmReq->orderId);
+				$id_cart = (int) $IpnOrderIdParts[0];
+				if ($id_cart < 1) {
+					$this->errorType    = Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_PERMANENT;
+					$this->errorCode    = Mobilpay_Payment_Request_Abstract::ERROR_CONFIRM_INVALID_ACTION;
+					$this->errorMessage = 'Invalid orderId: missing cart id';
+				} else {
+					$cart = new Cart($id_cart);
+					if (!Validate::isLoadedObject($cart)) {
+						$this->errorType    = Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_PERMANENT;
+						$this->errorCode    = Mobilpay_Payment_Request_Abstract::ERROR_CONFIRM_INVALID_ACTION;
+						$this->errorMessage = 'Cart not found';
+					} else {
+						// IPN has no session: set context from cart so Order::getIdByCartId and validateOrder use the correct shop (avoids 404 on confirmation)
+						$this->context->shop = new Shop((int) $cart->id_shop);
+						$this->context->language = new Language((int) $cart->id_lang);
+						$customer = new Customer((int) $cart->id_customer);
+
+						// PrestaShop 9 uses Order::getIdByCartId (returns id_order or false)
+						$order_id = Order::getIdByCartId($id_cart);
+						$order_id = ($order_id !== false) ? (int) $order_id : 0;
+
+				if ($order_id > 0) {
+					$order = new Order(intval($order_id));
+
+					$history = new OrderHistory();
+					$history->id_order = $order_id;
+					$history->id_order_state = $idOrderState;
+					$history->id_employee = 0;
+
+					$carrier = new Carrier(intval($order->id_carrier), intval($order->id_lang));
+					$templateVars = array('{followup}' => (defined('_PS_OS_SHIPPING_') && _PS_OS_SHIPPING_ && (int)$history->id_order_state === (int)_PS_OS_SHIPPING_ && $order->shipping_number) ? str_replace('@', $order->shipping_number, $carrier->url) : '');
+					$history->addWithemail(true, $templateVars);
+
+				}else{
+					/**
+					 * Add Order
+					 */	
+					 
+					$result = $this->module->validateOrder(
+						(int) $cart->id,
+						$idOrderState,
+						floatval($objPmReq->invoice->amount),
+						$this->module->displayName,
+						null,  // Message , saved in ps_message TB
+						array('transaction_id'=> $objPmReq->orderId), // Extera Vars
+						null,
+						false,
+						$customer->secure_key
+					);
+
+					// Real order id after creation
+					$order_id = Order::getIdByCartId($id_cart);
+					$order_id = ($order_id !== false) ? (int) $order_id : 0;
+					/**
+					 * Check if for sameday there is no record
+					 * So add new record for Sameday
+					 */
+				
+					if($order_id > 0) {
+						if(($this->samedaysLockerId > 0) && !is_null($this->samedaysLockerName) && !is_null($this->samedaysLockerAddress)) {
+							$sql = "INSERT INTO "._DB_PREFIX_."sameday_order_locker ( id_order, id_locker, 	address_locker, name_locker ) values( '$order_id', '$this->samedaysLockerId', '$this->samedaysLockerAddress', '$this->samedaysLockerName' )";
+							Db::getInstance()->execute($sql);
+						}
+					}
+				}
+					} // cart loaded
+				} // id_cart >= 1
+			} catch (Throwable $e) {
+				$this->errorType    = Mobilpay_Payment_Request_Abstract::CONFIRM_ERROR_TYPE_TEMPORARY;
+				$this->errorCode    = $e->getCode();
+				$this->errorMessage = $e->getMessage();
+			}
 		}
 
 		$this->context->smarty->assign([
