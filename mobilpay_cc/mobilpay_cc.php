@@ -437,15 +437,27 @@ class Mobilpay_cc extends PaymentModule
             // $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id);
             // $objPmReqCard->returnUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT,'UTF-8') . __PS_BASE_URI__ . $defaultLanguage->iso_code . '/order-confirmation?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
 
+            // returnUrl = where the user is redirected (we use our controller to avoid 404 on failed payment)
+            // confirmUrl = where the platform sends IPN (set below); both are sent to the platform
             $link = new Link();
-            $orderConfirmationUrl = $link->getPageLink('order-confirmation', true, $this->context->language->id);
-            $objPmReqCard->returnUrl = $orderConfirmationUrl . '?key=' . $customer->secure_key . '&amp;id_cart=' . intval($params['cart']->id) . '&amp;id_module=' . intval($this->id) . '&amp;id_order=' . intval($params['cart']->id);
+            $returnParams = [
+                'key' => $customer->secure_key,
+                'id_cart' => (int) $params['cart']->id,
+                'id_module' => (int) $this->id,
+                'id_order' => (int) $params['cart']->id,
+            ];
+            $objPmReqCard->returnUrl = $link->getModuleLink('mobilpay_cc', 'return', $returnParams, true);
+
+            // Cancel URL: full absolute URL (must be set before params so we can add it to params too for platforms that read it from there)
+            $cancelBase = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__;
+            $cancelUrl = $cancelBase . 'index.php?controller=cart&action=show';
+            $objPmReqCard->cancelUrl = $cancelUrl;
 
             $objPmReqCard->params = array(
                 'samedaysLockerId' => $lockerId,
                 'samedaysLockerName' => $lockerName,
                 'samedaysLockerAddress' => $lockerAddress,
-                'version' => "1.0.2",
+                'version' => "1.0.1",
                 'api' => "1.0",
                 'platform' => "prestaShop " . _PS_VERSION_,
                 'cartSummary' => $cartSummaryJson
@@ -455,8 +467,6 @@ class Mobilpay_cc extends PaymentModule
              * Confirm URL
              */
             $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'index.php?fc=module&amp;module=mobilpay_cc&amp;controller=betavalidation';
-
-            $objPmReqCard->cancelUrl = 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'index.php';
             $objPmReqCard->invoice = new Mobilpay_Payment_Invoice();
 
             // $objPmReqCard->invoice->currency = 'RON'; /*$currency_module->iso_code;*/
@@ -508,6 +518,11 @@ class Mobilpay_cc extends PaymentModule
             $deliveryAddress->email = $customer->email;
             $deliveryAddress->mobilePhone = $delivery->phone_mobile;
             $objPmReqCard->invoice->setShippingAddress($deliveryAddress);
+
+            // Ensure cancel URL is set immediately before encrypt (so <url><cancel> has the value)
+            $objPmReqCard->cancelUrl = $cancelUrl;
+            // Ensure confirm URL (IPN) is set so platform can call us and redirect the user
+            $objPmReqCard->confirmUrl = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://') . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'index.php?fc=module&module=mobilpay_cc&controller=betavalidation';
 
             $objPmReqCard->encrypt($x509FilePath);
             // echo'<pre/>';

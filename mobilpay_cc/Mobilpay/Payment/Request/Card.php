@@ -94,19 +94,25 @@ class Mobilpay_Payment_Request_Card extends Mobilpay_Payment_Request_Abstract
 			$rootElem->appendChild($xmlParams);
 		}
 		
-		if(!is_null($this->returnUrl) || !is_null($this->confirmUrl))
+		if(!is_null($this->returnUrl) || !is_null($this->confirmUrl) || !is_null($this->cancelUrl))
 		{
 			$xmlUrl = $this->_xmlDoc->createElement('url');
 			if(!is_null($this->returnUrl))
 			{
 				$xmlElem = $this->_xmlDoc->createElement('return');
-				$xmlElem->nodeValue = $this->returnUrl;
+				$xmlElem->appendChild($this->_xmlDoc->createTextNode($this->returnUrl));
 				$xmlUrl->appendChild($xmlElem); 
 			}
 			if(!is_null($this->confirmUrl))
 			{
 				$xmlElem = $this->_xmlDoc->createElement('confirm');
-				$xmlElem->nodeValue = $this->confirmUrl;
+				$xmlElem->appendChild($this->_xmlDoc->createTextNode($this->confirmUrl));
+				$xmlUrl->appendChild($xmlElem); 
+			}
+			if(!is_null($this->cancelUrl) && (string) $this->cancelUrl !== '')
+			{
+				$xmlElem = $this->_xmlDoc->createElement('cancel');
+				$xmlElem->appendChild($this->_xmlDoc->createTextNode($this->cancelUrl));
 				$xmlUrl->appendChild($xmlElem); 
 			}
 			
