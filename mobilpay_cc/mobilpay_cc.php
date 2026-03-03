@@ -457,7 +457,7 @@ class Mobilpay_cc extends PaymentModule
                 'samedaysLockerId' => $lockerId,
                 'samedaysLockerName' => $lockerName,
                 'samedaysLockerAddress' => $lockerAddress,
-                'version' => "1.0.1",
+                'version' => "1.0.2",
                 'api' => "1.0",
                 'platform' => "prestaShop " . _PS_VERSION_,
                 'cartSummary' => $cartSummaryJson
